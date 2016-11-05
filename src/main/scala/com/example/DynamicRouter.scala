@@ -1,5 +1,6 @@
 package com.example
 
+import akka.actor.Actor.Receive
 import akka.actor._
 
 case class InterestedIn(messageType: String)
@@ -10,5 +11,13 @@ case class TypeBMessage(description: String)
 case class TypeCMessage(description: String)
 case class TypeDMessage(description: String)
 
-object DynamicRouterDriver {
+object DynamicRouterDriver extends CompletableApp(5) {
+}
+
+class DuunoInterested extends Actor {
+  override def receive: Receive = {
+    case message: Any =>
+      println(s"DuunoInterest: received undeliverable message: $message")
+      DynamicRouterDriver.completedStep()
+  }
 }
