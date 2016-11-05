@@ -21,3 +21,15 @@ class DunnoInterested extends Actor {
       DynamicRouterDriver.completedStep()
   }
 }
+
+class TypeAInterested(interestRouter: ActorRef) extends Actor {
+  interestRouter ! InterestedIn(TypeAMessage.getClass.getName)
+
+  override def receive: Receive = {
+    case message: TypeAMessage =>
+      println(s"TypeAInterested: received: $message")
+      DynamicRouterDriver.completedStep()
+    case message: Any =>
+      println(s"TypeAInterested: received unexpected message: $message")
+  }
+}
