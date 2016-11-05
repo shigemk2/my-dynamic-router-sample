@@ -14,7 +14,7 @@ case class TypeDMessage(description: String)
 object DynamicRouterDriver extends CompletableApp(5) {
 }
 
-class DuunoInterested extends Actor {
+class DunnoInterested extends Actor {
   override def receive: Receive = {
     case message: Any =>
       println(s"DuunoInterest: received undeliverable message: $message")
