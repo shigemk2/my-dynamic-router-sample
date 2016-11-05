@@ -33,3 +33,15 @@ class TypeAInterested(interestRouter: ActorRef) extends Actor {
       println(s"TypeAInterested: received unexpected message: $message")
   }
 }
+
+class TypeBInterested(interestRouter: ActorRef) extends Actor {
+  interestRouter ! InterestedIn(TypeBMessage.getClass.getName)
+
+  override def receive: Receive = {
+    case message: TypeBMessage =>
+      println(s"TypeBInterested: received: $message")
+      DynamicRouterDriver.completedStep()
+    case message: Any =>
+      println(s"TypeBInterested: received unexpected message: $message")
+  }
+}
