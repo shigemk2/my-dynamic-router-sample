@@ -1,6 +1,7 @@
 package com.example
 
 import akka.actor.Actor.Receive
+import reflect.runtime.currentMirror
 import akka.actor._
 
 case class InterestedIn(messageType: String)
@@ -12,6 +13,42 @@ case class TypeCMessage(description: String)
 case class TypeDMessage(description: String)
 
 object DynamicRouterDriver extends CompletableApp(5) {
+}
+
+class TypedMessageInterestRouter(
+                                  dunnoInterested: ActorRef,
+                                  canStartAfterRegistered: Int,
+                                  canCompleteAfterUnregistered: Int) extends Actor {
+  val interestRegistry = scala.collection.mutable.Map[String, ActorRef]()
+  val secondaryInterestRegistry = scala.collection.mutable.Map[String, ActorRef]()
+
+  override def receive: Receive = {
+    case interestedIn: InterestedIn =>
+      registerInterest(interestedIn)
+    case noLongerInterestedIn: NoLongerInterestedIn =>
+      unregisterInterest(noLongerInterestedIn)
+    case message: Any =>
+      sendFor(message)
+  }
+
+  def registerInterest(interestedIn: InterestedIn) = {
+    val messageType = typeOfMessage(interestedIn.messageType)
+    if (!interestRegistry.contains(messageType)) {
+      interestRegistry(messageType) = sender
+    } else {
+      secondaryInterestRegistry(messageType) = sender
+    }
+
+    if (interestRegistry.size + secondaryInterestRegistry.size >= canStartAfterRegistered) {
+      DynamicRouterDriver.canStartNow()
+    }
+  }
+
+  def sendFor(message: Any) = {
+    val messageType = typeOfMessage(currentMirror)
+  }
+
+
 }
 
 class DunnoInterested extends Actor {
