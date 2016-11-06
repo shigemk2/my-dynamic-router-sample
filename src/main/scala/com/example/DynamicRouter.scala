@@ -24,7 +24,7 @@ object DynamicRouterDriver extends CompletableApp(5) {
   val typeAInterest = system.actorOf(Props(classOf[TypeAInterested], typedMessageInterestRouter), "typeAInterest")
   val typeBInterest = system.actorOf(Props(classOf[TypeBInterested], typedMessageInterestRouter), "typeBInterest")
   val typeCInterest = system.actorOf(Props(classOf[TypeCInterested], typedMessageInterestRouter), "typeCInterest")
-  val typeCAlsoInterest = system.actorOf(Props(classOf[TypeCAlsoInterested], typedMessageInterestRouter), "typeCAlsoInterest")
+  val typeCAlsoInterested = system.actorOf(Props(classOf[TypeCAlsoInterested], typedMessageInterestRouter), "typeCAlsoInterested")
 
   awaitCanStartNow
 
@@ -101,7 +101,7 @@ class TypedMessageInterestRouter(
         }
 
         unregisterCount = unregisterCount + 1
-        if (unregisterCount >= this.canStartAfterRegistered) {
+        if (unregisterCount >= this.canCompleteAfterUnregistered) {
           DynamicRouterDriver.canCompleteNow()
         }
       }
