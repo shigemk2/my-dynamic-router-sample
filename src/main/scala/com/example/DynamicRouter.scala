@@ -13,6 +13,32 @@ case class TypeCMessage(description: String)
 case class TypeDMessage(description: String)
 
 object DynamicRouterDriver extends CompletableApp(5) {
+  val dunnoInterested = system.actorOf(Props[DunnoInterested], "dunnoInterested")
+
+  val typedMessageInterestRouter =
+    system.actorOf(Props(
+      new TypedMessageInterestRouter(dunnoInterested, 4, 1)),
+      "typedMessageInterestRouter"
+    )
+
+  val typeAInterest = system.actorOf(Props(classOf[TypeAInterested], typedMessageInterestRouter), "typeAInterest")
+  val typeBInterest = system.actorOf(Props(classOf[TypeBInterested], typedMessageInterestRouter), "typeBInterest")
+  val typeCInterest = system.actorOf(Props(classOf[TypeCInterested], typedMessageInterestRouter), "typeCInterest")
+  val typeCAlsoInterest = system.actorOf(Props(classOf[TypeCAlsoInterested], typedMessageInterestRouter), "typeCAlsoInterest")
+
+  awaitCanStartNow
+
+  typedMessageInterestRouter ! TypeAMessage("Message of TypeA.")
+  typedMessageInterestRouter ! TypeBMessage("Message of TypeB.")
+  typedMessageInterestRouter ! TypeCMessage("Message of TypeC.")
+
+  awaitCanCompleteNow
+
+  typedMessageInterestRouter ! TypeCMessage("Another message of TypeC.")
+  typedMessageInterestRouter ! TypeDMessage("Message of TypeD.")
+
+  awaitCompletion
+  println("DynamicRouter: is completed.")
 }
 
 class TypedMessageInterestRouter(
