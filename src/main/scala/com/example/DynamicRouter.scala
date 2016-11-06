@@ -45,10 +45,42 @@ class TypedMessageInterestRouter(
   }
 
   def sendFor(message: Any) = {
-    val messageType = typeOfMessage(currentMirror)
+    val messageType = typeOfMessage(currentMirror.reflect(message).symbol.toString)
+
+    if (interestRegistry.contains(messageType)) {
+      interestRegistry(messageType) forward message
+    } else {
+      dunnoInterested ! message
+    }
   }
 
+  def typeOfMessage(rawMessageType: String): String = {
+    rawMessageType.replace('$', ' ').replace('.', ' ').split(' ').last.trim
+  }
 
+  var unregisterCount: Int = 0
+
+  def unregisterInterest(noLongerInterestedIn: NoLongerInterestedIn) = {
+    val messageType = typeOfMessage(noLongerInterestedIn.messageType)
+
+    if (interestRegistry.contains(messageType)) {
+      val wasInterested = interestRegistry(messageType)
+
+      if (wasInterested.compareTo(sender) == 0) {
+        if (secondaryInterestRegistry.contains(messageType)) {
+          val nowInterested = secondaryInterestRegistry.remove(messageType)
+          interestRegistry(messageType) = nowInterested.get
+        } else {
+          interestRegistry.remove(messageType)
+        }
+
+        unregisterCount = unregisterCount + 1
+        if (unregisterCount >= this.canStartAfterRegistered) {
+          DynamicRouterDriver.canCompleteNow()
+        }
+      }
+    }
+  }
 }
 
 class DunnoInterested extends Actor {
